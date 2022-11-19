@@ -17,9 +17,9 @@ end
 Lx= 1;                  %  width (m)
 Ly= 1;                  %  depth (m)
 Lz= 1;                  %  height (m)
-Nx=71;                 % nodes in x direction (odd number to have central plane to slice through)
-Ny=71;                 % nodes in y direction (odd number to have central plane to slice through)
-Nz=71;                  % nodes in z direction (odd number to have central plane to slice through)
+Nx=101;                 % nodes in x direction (odd number to have central plane to slice through)
+Ny=101;                 % nodes in y direction (odd number to have central plane to slice through)
+Nz=101;                  % nodes in z direction (odd number to have central plane to slice through)
 dx=Lx/Nx;               % spacing along x
 dy=Ly/Ny;               % spacing along y
 dz=Lz/Nz;               % spacing along z
@@ -29,7 +29,7 @@ yc=(Ny+1)/2;
 zc=(Nz+1)/2;
 
 %dt=(C/v)*dx; %stable time step
-tmax=3600; % max time, sec
+tmax=7200; % max time, sec
 
 %% Initial and boundary conditions (1st type, a.k.a Dirichlet)
 % T(y,x,z) % -- wave function, structure of 3D array
@@ -67,9 +67,9 @@ dt=C/v*dx;
 
 %% Domain
 
-x=linspace(0,Lx,Nx);
-y=linspace(0,Ly,Ny);
-z=linspace(0,Lz,Nz);
+x=linspace(-Lx/2,Lx/2,Nx);
+y=linspace(-Ly/2,Ly/2,Ny);
+z=linspace(-Lz/2,Lz/2,Nz);
 [X Y Z]=meshgrid(x,y,z);
 
 %% Initial Perturbation D (initial condition)
@@ -92,26 +92,28 @@ T_prev(i1,j1,k1)=T(i1,j1,k1); % "previous" T
 %% Constants
 iter=1;  % counter of iterations
 error  = 1; % initial error for iterations
-tmax=3600; % max time, sec 
 t=0;
 
 %% plotting 
 opengl hardware % or "software"
-  T_max = .5; % limits for plotting isosurfaces and colors (need care for nicer pictures)
-  T_min = -.5;
+  T_max = .25; % limits for plotting isosurfaces and colors (need care for nicer pictures)
+  T_min = -.25;
 
 numisosurf=10; % number of isosurfaces
 isovalues=linspace(T_min,T_max,numisosurf);
 
-figure('units','pixels','position',[50 50 1270 720])
+hhh=figure('units','pixels','position',[0 0 1920 1080]);
+% set(hhh, 'units', 'normalized', 'outerposition', [0 0 2 2],'Visible','off');
+
 daspect([1 1 1])
 caxis([T_min T_max]);
 colorbar
 caxis manual
 shading interp
-drawnow
-whitebg([0 0 0]); % dark background
 
+whitebg([0 0 0]); % dark background
+drawnow
+pause
 %% Solution
 tic
 i=2:Ny-1; %inner nodes along y
@@ -122,23 +124,33 @@ T_new=T; % T at next timestep (further updated below)
 % T is now
 % T_prev is at previous timestep
 % T_next is at next timestep
-
+% save(['data/' num2str(iter) '.mat'],'T');
+cam=0;
 while t<=tmax
-
+filename_prev=['data/' num2str(iter) '.mat'];
+filename=['data/' num2str(iter+1) '.mat'];
  % central in time and space central order finite differences (2nd order derivatives)
  
+ if isfile(filename)
+     load(filename,'T');     
+ else 
      T_next(i,j,k) = 2*T(i,j,k)-T_prev(i,j,k)+C^2*(((T(i-1,j,k)-2*T(i,j,k)+T(i+1,j,k))/dy^2)+((T(i,j-1,k)-2*T(i,j,k)+T(i,j+1,k))/dx^2)+((T(i,j,k-1)-2*T(i,j,k)+T(i,j,k+1))/dz^2));
-     iter=iter+1;
-     t=iter*dt; 
+ end
+
+    t=iter*dt; 
  
 if mod(iter,1)==0 
-    plot3D(X,Y,Z,Lx,Ly,Lz,dx,dy,dz,T,T_min,T_max,isovalues,numisosurf,iter,t); 
+    cam=cam+0.25;
+    camposition=[2*cosd(cam),2*sind(cam),0.6];
+    plot3D(X,Y,Z,Lx,Ly,Lz,dx,dy,dz,T,T_min,T_max,isovalues,numisosurf,iter,t,camposition); 
 end
+ save(['data/' num2str(iter) '.mat'],'T')
+iter=iter+1
 
 % shifting T's in time 
 T_prev=T;
 T = T_next;
- 
+
 if video >0 
          frame = getframe(gcf);
          writeVideo(writerObj,frame);
@@ -155,6 +167,10 @@ toc
 
 
 disp('COMPLETE!');
+
+
+
+
 
 
 

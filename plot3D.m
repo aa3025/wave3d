@@ -10,10 +10,10 @@ clf
 % isovalues=linspace(T_min,T_max,numisosurf);
 
 %% colorbar
-format bank
-cbh = colorbar ; %Create Colorbar
-cbh.Ticks = 1:numisosurf; %Create numisosurf ticks from 1 to numisosurf
-cbh.TickLabels = num2cell(round(linspace(T_min,T_max,numisosurf),2));    %Replace the labels of these numisosurf ticks with the numbers from T_min to T_max
+% format bank
+% cbh = colorbar ; %Create Colorbar
+% cbh.Ticks = 1:numisosurf; %Create numisosurf ticks from 1 to numisosurf
+% cbh.TickLabels = num2cell(round(linspace(T_min,T_max,numisosurf),2));    %Replace the labels of these numisosurf ticks with the numbers from T_min to T_max
  
 %%
 num=numel(isovalues);
@@ -30,15 +30,18 @@ caxis([0 num])
 %colorbar
 
 box off; grid on; axis tight; daspect([1 1 1])
+h=gcf;
+h.Color=[0 0 0];
+axis off
 
 camproj perspective
 camlight; lighting gouraud; alpha(0.5);
-axis([dx Lx dy Ly-dy dz Lz-dz]); % plot only half along Y to see inside
+axis([-Lx/2+dx Lx/2-dx -Ly/2+dx Ly/2-dy -Lz/2+dz Lz/2-dz]); % plot only half along Y to see inside
 axis manual
 %view(iter,20); % orbiting camera
 view(330,20); %switch on to have static view
 
 % view(3) % iso view
-title(['3D Wave equation solution in a box, iter = ' num2str(iter) ', t = ' num2str(t) ' s']);
+%title(['3D Wave equation solution in a box, iter = ' num2str(iter) ', t = ' num2str(t) ' s']);
 drawnow
 
